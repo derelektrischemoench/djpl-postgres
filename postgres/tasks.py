@@ -151,31 +151,38 @@ def pg_create_user(db_username, db_password=None):
     Create a postgresql user
     """
     from django.conf import settings
-    db_host = settings.DATABASES['default']['HOST']
+    from . import api
 
-    # check that a .pgpass file exists
-    pgpass_file = get_pgpass_file()
-    if not os.path.isfile(pgpass_file):
-        print('*** your .pgpass file does not exist yet. Create {passfile} and execute this task again.'.format(passfile=pgpass_file))
-        return
+    if api.is_valid_postgres_string(db_username):
+        db_host = settings.DATABASES['default']['HOST']
 
-    if not db_password:
-        db_password = ''.join([choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(16)])
+        # check that a .pgpass file exists
+        pgpass_file = get_pgpass_file()
+        if not os.path.isfile(pgpass_file):
+            print('*** your .pgpass file does not exist yet. Create {passfile} and execute this task again.'.format(passfile=pgpass_file))
+            return
 
-    print(
-        subprocess.check_output('psql --host %s --username %s -c "CREATE USER %s WITH PASSWORD \'%s\';"' % (
-            db_host,
-            'postgres',
-            db_username,
-            db_password
-        ), shell=True)
-    )
+        if not db_password:
+            db_password = ''.join([choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(16)])
 
-    # add user and password to .pgpass
-    with open(pgpass_file, 'a') as f:
-        f.write('%s:5432:*:%s:%s\n' % (db_host, db_username, db_password))
+        print(
+            subprocess.check_output('psql --host %s --username %s -c "CREATE USER %s WITH PASSWORD \'%s\';"' % (
+                db_host,
+                'postgres',
+                db_username,
+                db_password
+            ), shell=True)
+        )
 
-    print('*** User "%s" created with password "%s". All stored in "%s"' % (db_username, db_password, pgpass_file))
+        # add user and password to .pgpass
+        with open(pgpass_file, 'a') as f:
+            f.write('%s:5432:*:%s:%s\n' % (db_host, db_username, db_password))
+
+        print('*** User "%s" created with password "%s". All stored in "%s"' % (db_username, db_password, pgpass_file))
+
+    else:
+        print('Your db_owner name is bad. Please select a name that matches this regex: ^[a-zA-Z0-9_]+ ')
+
 
 
 @tasks.register
@@ -220,13 +227,18 @@ def pg_create_db(db_name, owner):
     Create a postgresql database
     """
     from django.conf import settings
-    db_host = settings.DATABASES['default']['HOST']
-    print(subprocess.check_output('psql --host %s --username %s -c "CREATE DATABASE %s WITH OWNER %s TEMPLATE template0 ENCODING \'UTF8\';"' % (
-        db_host,
-        'postgres',
-        db_name,
-        owner,
-    ), shell=True))
+    from . import api
+
+    if api.is_valid_postgres_string(db_name) and db_name.islower():
+        db_host = settings.DATABASES['default']['HOST']
+        print(subprocess.check_output('psql --host %s --username %s -c "CREATE DATABASE %s WITH OWNER %s TEMPLATE template0 ENCODING \'UTF8\';"' % (
+            db_host,
+            'postgres',
+            db_name,
+            owner,
+        ), shell=True))
+    else:
+        print('Your db name is bad. Please select a name that matches this regex: ^[a-z0-9_]+')
 
 
 @tasks.register
