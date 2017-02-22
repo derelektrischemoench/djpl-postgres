@@ -60,17 +60,17 @@ def restore_database(target_path, db_name, owner):
     )
 
 
-def is_valid_postgres_string(user_name):
+def is_valid_postgres_string(namestring):
     """
     checks the postgres name input for validity
-    :param user_name:
+    :param namestring:
     :return:
     """
     import re
 
-    pattern = re.compile('^\w+$')
+    pattern = re.compile('^[A-Za-z0-9_]+$')
 
-    if pattern.match(user_name):
+    if pattern.match(namestring):
         return True
 
     return False

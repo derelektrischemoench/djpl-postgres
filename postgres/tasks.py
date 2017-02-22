@@ -153,7 +153,7 @@ def pg_create_user(db_username, db_password=None):
     from django.conf import settings
     from . import api
 
-    if api.is_valid_postgres_string(db_username):
+    if api.is_valid_postgres_string(db_username) and db_username.islower():
         db_host = settings.DATABASES['default']['HOST']
 
         # check that a .pgpass file exists
@@ -181,7 +181,7 @@ def pg_create_user(db_username, db_password=None):
         print('*** User "%s" created with password "%s". All stored in "%s"' % (db_username, db_password, pgpass_file))
 
     else:
-        print('Your db_owner name is bad. Please select a name that matches this regex: ^[a-zA-Z0-9_]+ ')
+        print('Your db_owner name is bad. Please select a name that matches this regex: ^[a-z0-9_]+ ')
 
 
 

@@ -5,7 +5,7 @@ from postgres.api import is_valid_postgres_string
 from django_productline.testingutils import NoMigrationsTestCase
 
 
-class TestDBUsernameValidity(NoMigrationsTestCase):
+class TestDBNameValidity(NoMigrationsTestCase):
 
     def test_is_valid_postgres_string_1(self):
         database_name = "test"
@@ -54,5 +54,3 @@ class TestDBUsernameValidity(NoMigrationsTestCase):
     def test_is_valid_postgres_string_12(self):
         database_name = "øłæ→ŋħđø→ħ€łđøłæ→↓ħđæðħđ"
         self.assertFalse(is_valid_postgres_string(database_name))
-
-
